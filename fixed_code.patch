@@ -1,0 +1,67 @@
+
+From: SatyamTiwari 22051616@kiit.ac.in
+Date: Mon, 9 Sep 2024 10:00:00 +0000
+Subject: FIXED PATCHES :  getDataPoint, getRatio, and Main block
+
+---
+ client3.py | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/client3.py b/client3.py
+index d6e3d23..fcbab21 100644
+--- a/client3.py
++++ b/client3.py
+@@ -7,9 +7,12 @@ QUERY = "http://localhost:8080/query?id={}"
+ 
+ N = 500
+ 
+-def getDataPoint(quote):
+-    """ Produce all the needed values to generate a datapoint """
+-    stock = quote['stock']
+-    bid_price = float(quote['top_bid']['price'])
+-    ask_price = float(quote['top_ask']['price'])
+-    price = bid_price
+-    return stock, bid_price, ask_price, price
+
++def getDataPoint(quote):
++    """ Produce all the needed values to generate a datapoint """
++    stock = quote['stock']
++    bid_price = float(quote['top_bid']['price'])
++    ask_price = float(quote['top_ask']['price'])
++    # Calculate the average price (midpoint)
++    price = (bid_price + ask_price) / 2
++    return stock, bid_price, ask_price, price
++
++def getRatio(price_a, price_b):
++    """ Get ratio of price_a and price_b, handling division by zero """
++    if price_b == 0:
++        return None  # Avoid division by zero
++    return price_a / price_b
+ 
+ # Main
+ if __name__ == "__main__":
+     # Query the price once every N seconds.
+     for _ in iter(range(N)):
+         # Fetch quotes from the server
+         quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+ 
+-        """ ----------- Update to get the ratio --------------- """
+-        for quote in quotes:
+-            stock, bid_price, ask_price, price = getDataPoint(quote)
+-            print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
++        # Initialize prices for both stocks
++        prices = {}
++
++        # Get data points and store prices for each stock
++        for quote in quotes:
++            stock, bid_price, ask_price, price = getDataPoint(quote)
++            prices[stock] = price
++            print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
++
++        # Ensure we have both prices to compute the ratio
++        if 'ABC' in prices and 'DEF' in prices:
++            ratio = getRatio(prices['ABC'], prices['DEF'])
++            print("Ratio %s" % ratio)
+
+-- 
+2.41.0
